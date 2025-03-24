@@ -1,40 +1,47 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect } from 'react';
+import axios from 'axios';
 
-// Тип данных для пользователя
 interface User {
     id: number;
     name: string;
 }
 
-const UsersPage = () => {
-    const [showUsers, setShowUsers] = useState(false);
-    const [users, setUsers] = useState<User[]>([]); // Здесь типизируем users как массив объектов User
+function UsersPage() {
+    const [users, setUsers] = useState<User[]>([]);
+    const [showUsers, setShowUsers] = useState(false); // Состояние для отображения списка пользователей
 
     useEffect(() => {
+        // Загружаем пользователей только при необходимости
         if (showUsers) {
-            fetch("https://jsonplaceholder.typicode.com/users")
-                .then((response) => response.json())
-                .then((data) => setUsers(data))
-                .catch((error) => console.error("Ошибка загрузки", error));
+            axios.get('http://localhost:7000/api/users')
+                .then(response => {
+                    setUsers(response.data);
+                })
+                .catch(error => {
+                    console.error("There was an error fetching the data!", error);
+                });
         }
-    }, [showUsers]);
+    }, [showUsers]); // Эффект сработает каждый раз, когда showUsers изменится
 
     return (
-        <div style={{ textAlign: "center", marginTop: "20px" }}>
-            <label>
-                <input type="checkbox" checked={showUsers} onChange={() => setShowUsers(!showUsers)} />
-                Показать пользователей
-            </label>
+        <div>
+            <h1>Мои пользователи</h1>
 
+            {/* Кнопка с галочкой для отображения списка */}
+            <button onClick={() => setShowUsers(!showUsers)}>
+                {showUsers ? 'Скрыть пользователей' : 'Показать пользователей'}
+            </button>
+
+            {/* Если showUsers истинно, то отображаем список пользователей */}
             {showUsers && (
                 <ul>
-                    {users.map((user) => (
+                    {users.map(user => (
                         <li key={user.id}>{user.name}</li>
-                        ))}
+                    ))}
                 </ul>
             )}
         </div>
     );
-};
+}
 
 export default UsersPage;
